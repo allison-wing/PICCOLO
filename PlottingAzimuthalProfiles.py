@@ -132,7 +132,7 @@ oldclons_stretch = np.interp(x_stretch, x, oldclons)
 clons = oldclons_stretch
 
 #Open data file
-data = xr.open_dataset('./ERA-5_CampaignTrack.nc')
+data = xr.open_dataset('ERA-5_CampaignTrack_Regular_Variables_Hourly_BoxProfiles_NoLSmask_2016.nc')
 
 #Plot a variable of your choice
 #Chose precip and converting from m/s to mm/hr
