@@ -2,7 +2,7 @@
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import interpolate
+from scipy.interpolate import interp2d, RectBivariateSpline
 import cartopy.crs as ccrs
 from cartopy.mpl.ticker import LatitudeFormatter, LongitudeFormatter
 from datetime import datetime
@@ -41,7 +41,7 @@ def az(xord,yord,data,xcen,ycen,r):
     # and broadcast the operation.
 
     #interp2 outputs another function F where you can call xcircle and ycircle
-	F = interpolate.interp2d(xord, yord, data) # use the function to interpolate the data 
+	F = RectBivariateSpline(np.flip(xord), yord, np.flip(data,axis=0).T,kx=1,ky=1) # use the function to interpolate the data
 
     # because I have the 2D arrays, and they have one dimension in common (1), I can do 
     # the "dot" product. The important thing is to get the right order and transpose order
@@ -53,7 +53,7 @@ def az(xord,yord,data,xcen,ycen,r):
     # you get a 1000x1000 array, and diagonal or firstrow or firstcolumn won't work. so need to loop
 	for ix in range(0,nr): 
 		for i_nslice in range(0, nslice):
-			datai[i_nslice,ix]=F(xcircle[i_nslice,ix],ycircle[i_nslice,ix])
+			datai[i_nslice,ix]=F(xcircle[i_nslice,ix],ycircle[i_nslice,ix]).T
     
     #take azimuthal mean (ignoring cosine of latitude)
 	az = datai
@@ -137,6 +137,10 @@ data = xr.open_dataset('ERA-5_CampaignTrack_Regular_Variables_Hourly_BoxProfiles
 #Plot a variable of your choice
 #Chose precip and converting from m/s to mm/hr
 precipdata = data.TotPrecipratebox * 1000 * 3600
+
+#OLR 
+#precipdata = data.OLR #W/m^2
+
 latdata = data.latitude
 londata = data.longitude
 clatdata = data.centerLat
@@ -145,7 +149,7 @@ clondata = data.centerLon
 shipheadingdata  = calcshipHeading(clons,clats)
 
 #Loop through all the track points
-for t in range(0,len(precipdata)):
+for t in range(0,len(precipdata)-1):
     #Theta slices
     thetas = np.radians(np.arange(0, 361, 1))
     #Set radius for azimuth function
@@ -184,7 +188,8 @@ for t in range(0,len(precipdata)):
     fig = plt.figure(figsize=[20,10])
     ax = fig.add_subplot(111, polar=True)
     #Assemble the polar plot
-    precippolar = ax.contourf(thetas, radius, np.transpose(precipaz), cmap='YlGn', levels=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,5.5,10.5,15.5,20.5,25.5,30.5,35.5], origin='lower')
+    precippolar = ax.contourf(thetas, radius, np.transpose(precipaz), cmap='YlGn', levels=[0.5,5.5,10.5,15.5,20.5,25.5,30.5,35.5], origin='lower')
+    #precippolar = ax.contourf(thetas, radius, np.transpose(-1*precipaz), cmap='YlGnBu', levels=np.arange(150,350,20), origin='lower')
     #Set the directions so 0 is N, 90 is E, etc.
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
@@ -192,6 +197,7 @@ for t in range(0,len(precipdata)):
     #Plot the color bar
     cbar = fig.colorbar(precippolar)
     cbar.set_label("Precip. Rate [mm/hr]", fontweight='bold')
+    #cbar.set_label("OLR [W/m^2]", fontweight='bold')
     cbar.ax.set_yticklabels(cbar.ax.get_yticks(),weight='bold')
     #Set the title
     ax.set_title('Precip Rate by Azimuth', fontsize=18, weight='bold', loc='center')
@@ -200,47 +206,48 @@ for t in range(0,len(precipdata)):
     #Save the figure
     txt = str(t+1)
     plt.savefig('./hrlyprecipratesnaps/ERA-5_PrecipRate_AzSnapshot_NoLSmask_'+txt.zfill(3)+'.png')
+    #plt.savefig('./hrlyOLRsnaps/ERA-5_OLR_AzSnapshot_NoLSmask_'+txt.zfill(3)+'.png')
     #plt.show()
     plt.close()
 
-    #Plot Where the Interpolated track and actual track is
-    #Plot the ship tracks
-    #Create figure of world map
-    plt.figure(figsize=[20,10])
-    #Makes everything bold
-    plt.rcParams["font.weight"]="bold"
-    plt.rcParams["axes.labelweight"]="bold"
-    #Make Mercator plot
-    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=180))
-    #Plot tracks
-    #Interpolated
-    ax.plot(clons, clats, linestyle='-', linewidth=3,color='black', transform=ccrs.PlateCarree())
-    #Scatter start and end points
-    ax.scatter(clons[0],clats[0], marker='x', s=500,color='red', transform=ccrs.PlateCarree())
-    ax.scatter(clons[-1],clats[-1], marker='o', s=500,color='red', facecolor='white', transform=ccrs.PlateCarree())
-    #Scatter a given point along the track
-    ax.scatter(clons[t],clats[t], marker='o', s=250,color='red', transform=ccrs.PlateCarree())
-    #Set the lat/lon axes
-    ax.set_xticks([270,285,300,315,330,345,359.999999999], crs=ccrs.PlateCarree())
-    ax.set_yticks([-30,-15,0,15,30], crs=ccrs.PlateCarree())
-    #Make tick labels larger
-    ax.tick_params(axis='both',labelsize=15)
-    #Have plot only go from 30S to 30N
-    ax.set_ylim(-30,30)
-    #Format the Lat/Lon correctly for respective axes
-    lon_formatter = LongitudeFormatter(zero_direction_label=True)
-    lat_formatter = LatitudeFormatter()
-    ax.yaxis.set_major_formatter(lat_formatter)
-    ax.xaxis.set_major_formatter(lon_formatter)
-    #Put yaxis label on RHS
-    ax.yaxis.set_ticks_position('right')
-    #Grid the lats/lons
-    ax.grid(linestyle='--',color='lightgrey',linewidth=1.5, alpha=0.75)
-    #Add Coastlines
-    ax.coastlines(resolution='110m',linewidth=2)
-    plt.title('Field Campaign Interpolated Ship Track\nX is the Start, O is the Finish', fontweight='bold', fontsize=20)
-    #Save and show plot
-    txt = str(t+1)
-    plt.savefig('./ShipTrack/FieldCampaign_ShipLocationAlongtrack_'+txt.zfill(3)+'.png')
-    #plt.show()
-    plt.close()
+#    #Plot Where the Interpolated track and actual track is
+#    #Plot the ship tracks
+#    #Create figure of world map
+#    plt.figure(figsize=[20,10])
+#    #Makes everything bold
+#    plt.rcParams["font.weight"]="bold"
+#    plt.rcParams["axes.labelweight"]="bold"
+#    #Make Mercator plot
+#    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=180))
+#    #Plot tracks
+#    #Interpolated
+#    ax.plot(clons, clats, linestyle='-', linewidth=3,color='black', transform=ccrs.PlateCarree())
+#    #Scatter start and end points
+#    ax.scatter(clons[0],clats[0], marker='x', s=500,color='red', transform=ccrs.PlateCarree())
+#    ax.scatter(clons[-1],clats[-1], marker='o', s=500,color='red', facecolor='white', transform=ccrs.PlateCarree())
+#    #Scatter a given point along the track
+#    ax.scatter(clons[t],clats[t], marker='o', s=250,color='red', transform=ccrs.PlateCarree())
+#    #Set the lat/lon axes
+#    ax.set_xticks([270,285,300,315,330,345,359.999999999], crs=ccrs.PlateCarree())
+#    ax.set_yticks([-30,-15,0,15,30], crs=ccrs.PlateCarree())
+#    #Make tick labels larger
+#    ax.tick_params(axis='both',labelsize=15)
+#    #Have plot only go from 30S to 30N
+#    ax.set_ylim(-30,30)
+#    #Format the Lat/Lon correctly for respective axes
+#    lon_formatter = LongitudeFormatter(zero_direction_label=True)
+#    lat_formatter = LatitudeFormatter()
+#    ax.yaxis.set_major_formatter(lat_formatter)
+#    ax.xaxis.set_major_formatter(lon_formatter)
+#    #Put yaxis label on RHS
+#    ax.yaxis.set_ticks_position('right')
+#    #Grid the lats/lons
+#    ax.grid(linestyle='--',color='lightgrey',linewidth=1.5, alpha=0.75)
+#    #Add Coastlines
+#    ax.coastlines(resolution='110m',linewidth=2)
+#    plt.title('Field Campaign Interpolated Ship Track\nX is the Start, O is the Finish', fontweight='bold', fontsize=20)
+#    #Save and show plot
+#    txt = str(t+1)
+#    plt.savefig('./ShipTrack/FieldCampaign_ShipLocationAlongtrack_'+txt.zfill(3)+'.png')
+#    #plt.show()
+#    plt.close()
