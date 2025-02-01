@@ -18,8 +18,8 @@ import xarray as xr
 import pandas as pd
 
 # data_main = "/ourdisk/hpc/radclouds/auto_archive_notyet/tape_2copies/piccolo-data/data/"
-data_main = "/Volumes/piccolo_data/M203/"
-#data_main = "/huracan/tank1/work/ORCESTRA/M203/"
+#data_main = "/Volumes/piccolo_data/M203/"
+data_main = "/huracan/tank1/work/ORCESTRA/M203/"
 
 #############################################
 ### Sounding data
