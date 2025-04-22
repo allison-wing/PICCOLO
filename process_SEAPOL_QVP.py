@@ -62,7 +62,7 @@ for file_dir in file_dirs:
     qvp1D.attrs['source'] = 'SEA-POL Level4a QVP Volume'
 
     #save to netcdf
-    qvp1D.to_netcdf('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4a/qvp_1D/qvp_'+date+'.nc', mode='w', format='NETCDF4')
+    qvp1D.to_netcdf('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4a/qvp_1D/qvp_1D_'+date+'.nc', mode='w', format='NETCDF4')
 
 ############## After Praia - September #################
 # Load data
@@ -106,7 +106,7 @@ for file_dir in file_dirs:
     qvp1D.attrs['source'] = 'SEA-POL Level4a QVP Volume'
 
     #save to netcdf
-    qvp1D.to_netcdf('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4a/qvp_1D/qvp_'+date+'.nc', mode='w', format='NETCDF4')
+    qvp1D.to_netcdf('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4a/qvp_1D/qvp_1D_'+date+'.nc', mode='w', format='NETCDF4')
 
 ############## After Praia - REDO August 29-31 #################
 # Load data
@@ -151,4 +151,4 @@ for file_dir in file_dirs:
     qvp1D.attrs['source'] = 'SEA-POL Level4a QVP Volume'
 
     #save to netcdf
-    qvp1D.to_netcdf('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4a/qvp_1D/qvp_'+date+'.nc', mode='w', format='NETCDF4')
+    qvp1D.to_netcdf('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4a/qvp_1D/qvp_1D_'+date+'.nc', mode='w', format='NETCDF4')
