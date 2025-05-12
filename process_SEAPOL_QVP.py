@@ -42,10 +42,16 @@ for file_dir in file_dirs:
     #rainrate2 = rainrate.where(rainrate != -9999, 0)
     dbz2 = dbz.where(dbz != -9999, np.nan)
 
+    #convert from log to linear
+    reflectivity = 10**(dbz2/10)
+
     # Average spatially at each level (results in time x height)
     #rainrate_avg = rainrate2.mean(dim=['X', 'Y'],skipna=True)
-    dbz_avg = dbz2.mean(dim=['X', 'Y'],skipna=True) 
+    reflectivity_avg = reflectivity.mean(dim=['X', 'Y'],skipna=True) 
     #rainrate_cond = rainrate2.where(rainrate2>0).mean(dim=('X','Y'),skipna=True)
+
+    #convert back to dBZ
+    dbz_avg = 10*np.log10(reflectivity_avg)
 
     # Save to netcdf file
     #rainrate_avg.attrs['units'] = 'mm/h'
@@ -86,10 +92,16 @@ for file_dir in file_dirs:
     rainrate2 = rainrate.where(rainrate != -9999, 0)
     dbz2 = dbz.where(dbz != -9999, np.nan)
 
+    #convert from log to linear
+    reflectivity = 10**(dbz2/10)
+
     # Average spatially at each level (results in time x height)
     rainrate_avg = rainrate2.mean(dim=['X', 'Y'],skipna=True)
-    dbz_avg = dbz2.mean(dim=['X', 'Y'],skipna=True) 
+    reflectivity_avg = reflectivity.mean(dim=['X', 'Y'],skipna=True) 
     rainrate_cond = rainrate2.where(rainrate2>0).mean(dim=('X','Y'),skipna=True)
+
+    #convert back to dBZ
+    dbz_avg = 10*np.log10(reflectivity_avg)
 
     # Save to netcdf file
     rainrate_avg.attrs['units'] = 'mm/h'
@@ -131,10 +143,16 @@ for file_dir in file_dirs:
     rainrate2 = rainrate.where(rainrate != -9999, 0)
     dbz2 = dbz.where(dbz != -9999, np.nan)
 
+    #convert from log to linear
+    reflectivity = 10**(dbz2/10)
+
     # Average spatially at each level (results in time x height)
     rainrate_avg = rainrate2.mean(dim=['X', 'Y'],skipna=True)
-    dbz_avg = dbz2.mean(dim=['X', 'Y'],skipna=True) 
+    reflectivity_avg = reflectivity.mean(dim=['X', 'Y'],skipna=True) 
     rainrate_cond = rainrate2.where(rainrate2>0).mean(dim=('X','Y'),skipna=True)
+
+    #convert back to dBZ
+    dbz_avg = 10*np.log10(reflectivity_avg)
 
     # Save to netcdf file
     rainrate_avg.attrs['units'] = 'mm/h'
