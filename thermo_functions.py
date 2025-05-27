@@ -10,11 +10,15 @@
 # James Ruppert  
 # jruppert@ou.edu  
 # May 2022
+#
+# Allison Wing (awing@fsu.edu) added Wagner formulas for saturation, May 2025, 
+# as coded by Bjorn Stevens in https://gitlab.dkrz.de/m219063/moist_thermodynamics
 
 
 import numpy as np
 from metpy.calc import cape_cin, dewpoint_from_specific_humidity, parcel_profile#, most_unstable_parcel
 from metpy.units import units
+import constants_stevens as constants_stevens
 
 
 ############################################################################
@@ -225,6 +229,9 @@ def mixr_from_e(e,p):
 #   Converted all input/output to SI units, June 2022
 #   Added switch and if-statement for ice, June 2022
 
+# Allison Wing (awing@fsu.edu), to use Wagner formulas for saturation, May 2025, 
+# as coded by Bjorn Stevens in https://gitlab.dkrz.de/m219063/moist_thermodynamics
+
 # ;  Derivation:
 # ;                                      Mw*e              e
 # ;  W (mixing ratio) = m_h2o/m_dry = -------- = Mw/Md * ---
@@ -240,9 +247,11 @@ def calc_relh(MIXR,p,T,ice=True):
         T0=0.
     T+=T0
     
-    es=esat(T)
+    #es=esat(T)
+    es=liq_wagner_pruss(T) 
     if ice:
-        es[(T < 273.16)]=eice(T[(T < 273.16)])
+        #es[(T < 273.16)]=eice(T[(T < 273.16)])
+        es[(T < 273.16)]=ice_wagner_etal(T[(T < 273.16)])
     
     Mw=18.0160 # molecular weight of water
     Md=28.9660 # molecular weight of dry air
@@ -520,3 +529,78 @@ def get_cape_cin(T_in, qv_in, pres_in, type='sfc'):
             cin[it] = np.nan
 
     return cape, cin
+
+def liq_wagner_pruss(T):
+    """Returns saturation vapor pressure (Pa) over planer liquid water
+
+    Encodes the empirical fits of Wagner and Pruss (2002), Eq 2.5a (page 399). Their formulation
+    is compared to other fits in the example scripts used in this package, and deemed to be the
+    best reference.
+
+    The fit has been verified for TvT <= T < = TvC.  For super cooled water (T<TvT) it deviates
+    from the results of Murphy and Koop where were developed for super-cooled water.  It is about
+    10% larger at 200 K, 25 % larter at 150 K, and then decreases again so it is 12% smaller at
+    the limit (123K) of the Murphy and Koop fit.  For accurate fits for super-cooled water the
+    function of Murphy and Koop should be used.
+
+    Args:
+        T: temperature in kelvin
+
+    Reference:
+        W. Wagner and A. Pruß , "The IAPWS Formulation 1995 for the Thermodynamic Properties
+    of Ordinary Water Substance for General and Scientific Use", Journal of Physical and Chemical
+    Reference Data 31, 387-535 (2002) https://doi.org/10.1063/1.1461829
+
+    >>> liq_wagner_pruss(np.asarray([273.16,305.]))
+    array([ 611.65706974, 4719.32683147])
+    """
+    TvC = constants_stevens.temperature_water_vapor_critical_point
+    PvC = constants_stevens.pressure_water_vapor_critical_point
+
+    vt = 1.0 - T / TvC
+    es = PvC * np.exp(
+        TvC
+        / T
+        * (
+            -7.85951783 * vt
+            + 1.84408259 * vt**1.5
+            - 11.7866497 * vt**3
+            + 22.6807411 * vt**3.5
+            - 15.9618719 * vt**4
+            + 1.80122502 * vt**7.5
+        )
+    )
+    return es
+
+
+def ice_wagner_etal(T):
+    """Returns sublimation vapor pressure (Pa) over simple (Ih) ice
+
+    Encodes the emperical fits of Wagner et al., (2011) which also define the IAPWS standard for
+    sublimation vapor pressure over ice-Ih
+
+    Args:
+        T: temperature in kelvin
+
+    Reference:
+        Wagner, W., Riethmann, T., Feistel, R. & Harvey, A. H. New Equations for the Sublimation
+        Pressure and Melting Pressure of H 2 O Ice Ih. Journal of Physical and Chemical Reference
+        Data 40, 043103 (2011).
+
+
+    >>> ice_wagner_etal(np.asarray([273.16,260.]))
+    array([611.655     , 195.80103377])
+    """
+    TvT = constants_stevens.temperature_water_vapor_triple_point
+    PvT = constants_stevens.pressure_water_vapor_triple_point
+
+    a1 = -0.212144006e2
+    a2 = 0.273203819e2
+    a3 = -0.610598130e1
+    b1 = 0.333333333e-2
+    b2 = 0.120666667e1
+    b3 = 0.170333333e1
+    theta = T / TvT
+    es = PvT * np.exp((a1 * theta**b1 + a2 * theta**b2 + a3 * theta**b3) / theta)
+    return es
+
