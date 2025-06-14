@@ -46,7 +46,7 @@ for yy in years:
     IMERG = IMERG_ds.transpose('time','lat','lon',...)
     
     # Select region and time period of interest
-    IMERGyear = IMERG.sel(lat=slice(latMin,latMax),lon=slice(lonMin,lonMax),time=slice(str(yy)+'-'+start_time, str(yy)+'-'+end_time))
+    IMERGyear = IMERG.sel(lat=slice(latMin,latMax),lon=slice(lonMin,lonMax),time=slice(str(yy)+'-'+start_time, str(yy)+'-'+end_time)).mean(dim='time')
     zonalmean_precip_year = IMERGyear.sel(lon=slice(lon1,lon2)).mean(dim='lon')
     if yy == 1999:
         IMERGCampaign = IMERGyear
@@ -58,10 +58,11 @@ for yy in years:
 #Take climatological mean over campaign time period over all years
 IMERGClimoMean = IMERGCampaign.mean(dim='time')
 
-#Save to netcdf file
+#Save to netcdf file (climatological mean at each grid point over campaign time period in all years)
 IMERGClimoMean.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_campaign_climo.nc')
 
-# Save zonal mean to netcdf file
+# Save zonal mean to netcdf file (zonal mean over campaign time period in each year)
+zonalmean_precip = zonalmean_precip.assign_coords(time=years)
 zonalmean_precip.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_zonalmean_precip.nc')
 
 end = time.time()
