@@ -26,6 +26,9 @@ years = np.arange(1999,2022)  # 1999-2021
 for yy in years:
     # Load IMERG data
     file_paths = glob.glob(filebase + str(yy) + "*")
+    
+    #Filter out zero-size files
+    file_paths = [f for f in file_paths if os.path.getsize(f) > 0]
 
     #Open the files and combine them into a single dataset
     IMERG_ds = xr.open_mfdataset(file_paths,combine='by_coords')
