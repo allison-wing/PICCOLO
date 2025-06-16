@@ -7,7 +7,7 @@ import xarray as xr
 import glob
 import os
 
-# Load IMERG data
+# Load IMERG data (30-minute data, 0.1 degree resolution)
 file_paths = glob.glob("/huracan/tank4/cornell/ORCESTRA/imerg/final_run_V07_TropAtl_AugSep/3B-HHR.MS.MRG.3IMERG.2024*")
 
 #Open the files and combine them into a single dataset

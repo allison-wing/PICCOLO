@@ -1,7 +1,9 @@
 # Process IMERG data
 # 
-# combine IMERG files into a single dataset swapping dimensions so it is (time,lat,lon), 
-# write out file for one year
+# 30-minute data, 0.1 degree resolution
+# combine IMERG files into a single dataset per year swapping dimensions so it is (time,lat,lon)
+# take climatological mean over campaign time period in all years, write out
+# save zonal mean over campaign time period in each year, write out
 
 import xarray as xr
 import numpy as np
