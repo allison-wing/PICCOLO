@@ -45,6 +45,11 @@ for yy in years:
 
     # Swap lat & lon dimensions, so it is (time,lat,lon)
     IMERG = IMERG_ds.transpose('time','lat','lon',...)
+    
+    # Convert cftime.DatetimeJulian to pandas.DatetimeIndex
+    imergtimes = IMERG['time'].values
+    imergtimes_converted = pd.to_datetime([t.strftime('%Y-%m-%d %H:%M:%S') for t in imergtimes])
+    IMERG['time'] = imergtimes_converted
 
     # Make lat array from -20 to 40 with 0.25 degree spacing
     lat_target = np.arange(-20, 40.25, 0.25)
