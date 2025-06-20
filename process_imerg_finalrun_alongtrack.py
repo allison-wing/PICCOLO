@@ -34,6 +34,8 @@ years = np.arange(1998,2025)  # 1998-2024
 prec_alongtrack = np.full((len(years),len(ship_lat_interp)),np.nan)
 iyear = 0
 for yy in years:
+    # print year
+    print("Processing year:", yy)
     # Load IMERG data
     file_paths = glob.glob(filebase + str(yy) + "*")
     
