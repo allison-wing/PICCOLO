@@ -36,6 +36,9 @@ iyear = 0
 for yy in years:
     # print year
     print("Processing year:", yy)
+    
+    prec_alongtrack1 = np.full(len(ship_lat_interp), np.nan)  # Initialize array for one year
+    
     # Load IMERG data
     file_paths = glob.glob(filebase + str(yy) + "*")
     
@@ -62,12 +65,18 @@ for yy in years:
     # Interpolate IMERG from 0.10 degree to the 0.25 degree target arrays and coarsen to hourly on the hour
     imerg_coarse = IMERG.interp(lat=lat_target,lon=lon_target,method='linear')
     imerg_coarse = imerg_coarse.coarsen(time=2,boundary='pad').mean()
-    imerg_coarse = imerg_coarse.interp(lat=imerg_coarse.lat,lon=imerg_coarse.lon,time=ship_time_interp,method='linear')
-
+    
+    #Change year in ship track to this year
+    ship_time_interp_newyear = ship_time_interp.map(lambda t: t.replace(year=yy))
+    imerg_coarse = imerg_coarse.interp(lat=imerg_coarse.lat,lon=imerg_coarse.lon,time=ship_time_interp_newyear,method='linear')
     for itime in range(0,len(ship_lat_interp)):
-        # Change year in ship track to this year
-        ship_time_interp_now = ship_time_interp[itime].replace(year=yy)
-        prec_alongtrack[iyear,itime] = imerg_coarse.precipitation.sel(lat=ship_lat_interp[itime],lon=ship_lon_interp[itime], time=ship_time_interp_now, method='nearest')
+        prec_alongtrack1[itime] = imerg_coarse.precipitation.sel(lat=ship_lat_interp[itime],lon=ship_lon_interp[itime], time=ship_time_interp_newyear[itime], method='nearest')
+    
+    # Store the precipitation data for this year
+    prec_alongtrack[iyear, :] = prec_alongtrack1
+    
+    # Close the dataset to free up memory
+    IMERG_ds.close()
     
     iyear += 1 # advance year counter
     
@@ -84,7 +93,7 @@ prec_alongtrack.attrs['description'] = 'hourly IMERG precipitation (coarsened to
 prec_alongtrack_ds = prec_alongtrack.to_dataset()
 prec_alongtrack_ds.attrs['description'] = 'IMERG precipitation along ship track'
 prec_alongtrack_ds.attrs['source'] = 'IMERG v07 Final Run'
-prec_alongtrack_ds.attrs['history'] = 'Created 2025-06-10 by Allison Wing'
+prec_alongtrack_ds.attrs['history'] = 'Created 2025-06-20 by Allison Wing'
 
 # Add other variables
 prec_alongtrack_ds['ship_lat'] = ('time', ship_lat_interp)
