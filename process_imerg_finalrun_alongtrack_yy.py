@@ -7,7 +7,7 @@ import time
 
 start = time.time()
 
-yy = 2024  # year for which to process data
+yy = 2023  # year for which to process data
 
 # time period of campaign
 start_time = np.datetime64('2024-08-16T08:00:00')
