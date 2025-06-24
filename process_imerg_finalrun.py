@@ -6,9 +6,12 @@
 import xarray as xr
 import glob
 import os
+import time
+
+start = time.time()
 
 # Load IMERG data (30-minute data, 0.1 degree resolution)
-file_paths = glob.glob("/huracan/tank4/cornell/ORCESTRA/imerg/final_run_V07_TropAtl_AugSep/3B-HHR.MS.MRG.3IMERG.2024*")
+file_paths = glob.glob("/huracan/tank4/cornell/ORCESTRA/imerg/final_run_V07_TropAtl_AugSep/3B-HHR.MS.MRG.3IMERG.2022*")
 
 #Open the files and combine them into a single dataset
 #IMERG_ds = xr.open_mfdataset(file_paths,engine='h5netcdf',group='Grid',combine='by_coords')
@@ -18,4 +21,7 @@ IMERG_ds = xr.open_mfdataset(file_paths,combine='by_coords')
 IMERG = IMERG_ds.transpose('time','lat','lon',...)
 
 #Write out to new netcdf file
-IMERG.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_finalrun_20240809.nc')
+IMERG.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_finalrun_20220809.nc')
+
+end = time.time()
+print("Elapsed time for processing IMERG data:", end - start, "seconds")
