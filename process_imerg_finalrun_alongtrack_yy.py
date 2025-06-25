@@ -7,7 +7,7 @@ import time
 
 start = time.time()
 
-yy = 2022  # year for which to process data
+yy = 2017  # year for which to process data
 
 # time period of campaign
 start_time = np.datetime64('2024-08-16T08:00:00')
@@ -27,8 +27,18 @@ lat_target = np.arange(-20, 40.25, 0.25)
 # Make lon array from -80 to 20 with 0.25 degree spacing
 lon_target = np.arange(-80, 20.25, 0.25)
 
+end = time.time()
+print("Elapsed time for loading DSHIP data, making target arrays:", end - start, "seconds")
+
+start = time.time()
+
 # load imerg data
 imerg = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_finalrun_' + str(yy) + '0809.nc')
+
+end = time.time()
+print("Elapsed time for loading IMERG data:", end - start, "seconds")
+
+start = time.time()
 
 # Convert cftime.DatetimeJulian to pandas.DatetimeIndex
 imergtimes = imerg['time'].values
@@ -37,18 +47,35 @@ imerg['time'] = imergtimes_converted
 
 # put imerg data on 0.25 degree target grid
 imerg_grid = imerg.interp(lat=lat_target,lon=lon_target,method='linear') #interpolate to mimic grid
+
+end = time.time()
+print("Elapsed time for interpolating IMERG data to target grid:", end - start, "seconds")
+
+start = time.time()
 imerg_grid_coarse = imerg_grid.coarsen(time=2,boundary='pad').mean() #coarsen to hourly
 
+end = time.time()
+print("Elapsed time for coarsening IMERG data to hourly:", end - start, "seconds")
+
+start = time.time()
 # change time in ship track to this year
 ship_time_interp_newyear = ship_time_interp.map(lambda t: t.replace(year=yy))
 imerg_grid_coarse = imerg_grid_coarse.interp(lat=imerg_grid_coarse.lat,lon=imerg_grid_coarse.lon,time=ship_time_interp_newyear,method='linear') #interpolate to mimic times. For some reason I now (01/31/25) need to include lat and lon to keep them as indexes
 
+end = time.time()
+print("Elapsed time for interpolating IMERG data to ship track times:", end - start, "seconds")
+
+start = time.time()
 # extract data along ship track
 prec_alongtrack_yy = np.full(len(ship_lat_interp),np.nan)
 
 for itime in range(0,len(ship_lat_interp)):
     prec_alongtrack_yy[itime] = imerg_grid_coarse.precipitation.sel(lat=ship_lat_interp[itime],lon=ship_lon_interp[itime], time=ship_time_interp_newyear[itime],method='nearest')
 
+end = time.time()
+print("Elapsed time for extracting precipitation data along ship track:", end - start, "seconds")
+
+start = time.time()
 #remove year from ship_time_interp
 ship_time = ship_time_interp.strftime('%m-%d %H:%M:%S')
 
@@ -71,4 +98,4 @@ prec_alongtrack_yy_ds['ship_lon'] = ('time', ship_lon_interp)
 prec_alongtrack_yy_ds.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/prec_alongtrack_' + str(yy) + '.nc')
 
 end = time.time()
-print("Elapsed time for processing IMERG data:", end - start, "seconds")
+print("Elapsed time for writing out data:", end - start, "seconds")

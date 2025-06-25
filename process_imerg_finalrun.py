@@ -8,7 +8,7 @@ import glob
 import os
 import time
 
-yy = 2000
+yy = 2017
 
 start = time.time()
 
@@ -33,9 +33,18 @@ IMERG = IMERG_ds.transpose('time','lat','lon',...)
 end = time.time()
 print("Elapsed time for taking transpose:", end - start, "seconds")
 
+IMERG_reduced = IMERG.drop_dims(['latv','lonv','nv'])
+
+start = time.time()
+#load data into memory before writing
+IMERG_reduced.load()
+
+end = time.time()
+print("Elapsed time for loading data into memory:", end - start, "seconds")
+
 start = time.time()
 #Write out to new netcdf file
-IMERG.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_finalrun_' + str(yy) + '0809.nc')
+IMERG_reduced.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_finalrun_' + str(yy) + '0809.nc')
 
 end = time.time()
 print("Elapsed time for writing to file:", end - start, "seconds")
