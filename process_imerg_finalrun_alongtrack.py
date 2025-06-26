@@ -30,7 +30,7 @@ ship_lon_interp = np.interp(ship_time_interp,DSHIP.time,DSHIP.lon)
 filebase = "/huracan/tank4/cornell/ORCESTRA/imerg/final_run_V07_TropAtl_AugSep/3B-HHR.MS.MRG.3IMERG."
 
 # For each year, extract data along Meteor's track
-years = np.arange(2004,2017)  # 1998-2024
+years = np.arange(1998,2025)  # 1998-2024
 prec_alongtrack = np.full((len(years),len(ship_lat_interp)),np.nan)
 iyear = 0
 for yy in years:
@@ -115,11 +115,9 @@ for yy in years:
     iyear += 1 # advance year counter
 
 start = time.time()    
-#remove year from ship_time_interp
-ship_time = ship_time_interp.strftime('%m-%d %H:%M:%S')
 
 # Create xarray DataArray for precipitation along track
-prec_alongtrack = xr.DataArray(prec_alongtrack, coords=[years, ship_time], dims=['year', 'time'])
+prec_alongtrack = xr.DataArray(prec_alongtrack, coords=[years, ship_time_interp], dims=['year', 'time'])
 prec_alongtrack.name = 'precipitation'
 prec_alongtrack.attrs['units'] = 'mm/hr'
 prec_alongtrack.attrs['description'] = 'hourly IMERG precipitation (coarsened to 0.25 deg) along ship track'
@@ -128,7 +126,7 @@ prec_alongtrack.attrs['description'] = 'hourly IMERG precipitation (coarsened to
 prec_alongtrack_ds = prec_alongtrack.to_dataset()
 prec_alongtrack_ds.attrs['description'] = 'IMERG precipitation along ship track'
 prec_alongtrack_ds.attrs['source'] = 'IMERG v07 Final Run'
-prec_alongtrack_ds.attrs['history'] = 'Created 2025-06-23 by Allison Wing'
+prec_alongtrack_ds.attrs['history'] = 'Created 2025-06-25 by Allison Wing'
 
 # Add other variables
 prec_alongtrack_ds['ship_lat'] = ('time', ship_lat_interp)
