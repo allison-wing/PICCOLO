@@ -14,6 +14,8 @@ start = time.time()
 
 # Load IMERG data (30-minute data, 0.1 degree resolution)
 file_paths = glob.glob("/huracan/tank4/cornell/ORCESTRA/imerg/final_run_V07_TropAtl_AugSep/3B-HHR.MS.MRG.3IMERG." + str(yy) + "*")
+#Filter out zero-size files
+file_paths = [f for f in file_paths if os.path.getsize(f) > 0]
 
 end = time.time()
 print("Elapsed time for loading file paths:", end - start, "seconds")
