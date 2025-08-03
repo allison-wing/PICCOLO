@@ -60,7 +60,7 @@ indexAP = np.abs(pd.to_datetime(seapol.time) - APtime).argmin()
 # Loop over times since AP
 
 for i in range(0, np.size(seapol.time[indexAP:-1]) + 1):
-    print('Processing frame:', i)
+    print('Time:', seapol.time[indexAP + i].values)
     map_dbz = seapol.DBZ[indexAP+i,:,:,:]
 
     # set to nan outside of radius 120 km to only include data with the 3D volume
@@ -87,7 +87,7 @@ for i in range(0, np.size(seapol.time[indexAP:-1]) + 1):
     
     # plot
     fig, axs = plt.subplots(figsize=(8, 8),layout="constrained")  
-    cax = axs.pcolormesh(map_dbz.longitude, map_dbz.latitude, echo_top_height/1000, cmap=discrete_mask_cmap, vmin=0, vmax=15)
+    cax = axs.pcolormesh(map_dbz.longitude, map_dbz.latitude, echo_top_height/1000, cmap=discrete_mask_cmap, vmin=0, vmax=16)
     axs.set_aspect('equal',adjustable='box')
     cbar = fig.colorbar(cax, ax=axs, orientation='vertical',pad=0.02, shrink=0.70)
     cbar.ax.tick_params(labelsize=16)
@@ -110,3 +110,4 @@ for i in range(0, np.size(seapol.time[indexAP:-1]) + 1):
     #save figure
     fig.savefig(f'/home/awing/orcestra/figures/echo_top_height_frames/echo_top_height_{i:04d}.png', dpi=300, bbox_inches='tight')
 
+    plt.close(fig)
