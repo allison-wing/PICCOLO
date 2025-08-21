@@ -61,7 +61,7 @@ for yy in years:
     #Change year in ship track to this year
     ship_time_interp_newyear = ship_time_interp.map(lambda t: t.replace(year=yy))
     end = time.time()
-    print("Elapsed time for changing year in ship track and interpolating to right times:", end - start, "seconds")
+    print("Elapsed time for changing year in ship track:", end - start, "seconds")
     
     start = time.time()
     era5_cwv.load()  # Load the data into memory
