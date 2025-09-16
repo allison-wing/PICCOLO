@@ -32,25 +32,28 @@ time10m = pd.date_range(APtime, end_time, freq='10 min')
 time10m = pd.to_datetime(time10m)
 
 # Loop over times since AP
-#for i in range(0, np.size(seapol.time[indexAP:-1]) + 1): #loop over all times since AP
-for i in range(0,len(time10m)):  # loop over all times in the 10-minute series
-    #print('Time:', seapol.time[indexAP + i].values)
-    #map_dbz = seapol.DBZ[indexAP+i,:,:,:]
+for i in range(0, np.size(seapol.time[indexAP:-1])): #loop over all times since AP
+#for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (VOL1 only)
 
     #check if there is data for this time
-    if time10m[i] not in seapol.time.values:
-        print(f"No data for time {time10m[i]}")
+    if seapol.time[i].values not in seapol.time.values:
+    #if time10m[i] not in seapol.time.values: #VOL1 only
+        print(f"No data for time {seapol.time[i].values}")
+        #print(f"No data for time {time10m[i]}") #VOL1 only
         continue
-    else: 
-        print('Time:', seapol.time.sel(time=time10m[i]).values)
-        map_dbz = seapol.DBZ.sel(time=time10m[i])
+    else:
+        print('Time:', seapol.time[indexAP + i].values)
+        map_dbz = seapol.DBZ[indexAP+i,:,:,:]
+         
+        #print('Time:', seapol.time.sel(time=time10m[i]).values) #VOL1 only
+        map_dbz = seapol.DBZ.sel(time=time10m[i]) #VOL1 only
 
         # set to nan outside of radius_outer to only include data with the 3D volume
         distances = np.sqrt((map_dbz.latitude - map_dbz.latitude[120, 120])**2 + (map_dbz.longitude - map_dbz.longitude[120, 120])**2) * 111.32  # Approximate conversion from degrees to km
         map_dbz = map_dbz.where(distances<=radius_outer,np.nan)  # Set values outside the radius to NaN
 
         # also mask within radius_inner, to limit to radial range where we have "full" 3D coverage
-        map_dbz = map_dbz.where(distances >= radius_inner, np.nan)
+        #map_dbz = map_dbz.where(distances >= radius_inner, np.nan)
 
         # mask for valid (non-NaN) data
         valid_data = ~np.isnan(map_dbz.values)
@@ -83,4 +86,4 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series
 # Save the echo base heights to netcdf
 ds = xr.Dataset({'echo_base_height': (['data points'], all_echo_base_heights)},
                 coords={'data points': np.arange(len(all_echo_base_heights))})
-ds.to_netcdf('../../data/SEA-POL_echo_base_height_vol1_50_120.nc')
+ds.to_netcdf('../../data/SEA-POL_echo_base_height_50_120.nc')
