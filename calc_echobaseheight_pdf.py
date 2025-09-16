@@ -20,7 +20,7 @@ radius_outer = 120  # km
 radius_inner = 50
 
 #find the min height where the reflectivity is above a threshold
-threshold = 10
+threshold = 5
 
 #Define time period for spatial map
 APtime = np.datetime64('2024-08-28T20:20:00')
@@ -46,7 +46,7 @@ for i in range(0, np.size(seapol.time[indexAP:-1])): #loop over all times since 
         map_dbz = seapol.DBZ[indexAP+i,:,:,:]
          
         #print('Time:', seapol.time.sel(time=time10m[i]).values) #VOL1 only
-        map_dbz = seapol.DBZ.sel(time=time10m[i]) #VOL1 only
+        #map_dbz = seapol.DBZ.sel(time=time10m[i]) #VOL1 only
 
         # set to nan outside of radius_outer to only include data with the 3D volume
         distances = np.sqrt((map_dbz.latitude - map_dbz.latitude[120, 120])**2 + (map_dbz.longitude - map_dbz.longitude[120, 120])**2) * 111.32  # Approximate conversion from degrees to km
@@ -86,4 +86,4 @@ for i in range(0, np.size(seapol.time[indexAP:-1])): #loop over all times since 
 # Save the echo base heights to netcdf
 ds = xr.Dataset({'echo_base_height': (['data points'], all_echo_base_heights)},
                 coords={'data points': np.arange(len(all_echo_base_heights))})
-ds.to_netcdf('../../data/SEA-POL_echo_base_height_50_120.nc')
+ds.to_netcdf('../../data/SEA-POL_echo_base_height_vol1_50_120_5dbz.nc')
