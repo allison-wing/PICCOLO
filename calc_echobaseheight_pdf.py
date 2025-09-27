@@ -13,17 +13,18 @@ import glob
 import os
 
 # read in data
-seapol = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4b/PICCOLO_level4b_volume_3D.nc')
+seapol = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4/PICCOLO_level4_volume_3D.nc')
 
 # set to nan outside of radius 120 km to only include data with the 3D volume
 radius_outer = 120  # km
 radius_inner = 50
 
 #find the min height where the reflectivity is above a threshold
-threshold = 5
+threshold = 10
 
 #Define time period for spatial map
-APtime = np.datetime64('2024-08-28T20:20:00')
+#APtime = np.datetime64('2024-08-28T20:20:00')
+APtime = np.datetime64('2024-08-17T00:00:00')
 indexAP = np.abs(pd.to_datetime(seapol.time) - APtime).argmin()
 
 # Make regular 10-minute time series
@@ -86,4 +87,4 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series s
 # Save the echo base heights to netcdf
 ds = xr.Dataset({'echo_base_height': (['data points'], all_echo_base_heights)},
                 coords={'data points': np.arange(len(all_echo_base_heights))})
-ds.to_netcdf('../../data/SEA-POL_echo_base_height_vol1_50_120_5dbz.nc')
+ds.to_netcdf('../../data/SEA-POLv1.0_echo_base_height_vol1_50_120_10dbz.nc')
