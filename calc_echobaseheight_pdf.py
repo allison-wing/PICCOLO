@@ -20,7 +20,7 @@ radius_outer = 120  # km
 radius_inner = 50
 
 #find the min height where the reflectivity is above a threshold
-threshold = -10
+threshold = 40
 
 #Define time period for spatial map
 #APtime = np.datetime64('2024-08-28T20:20:00')
@@ -87,4 +87,4 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series s
 # Save the echo base heights to netcdf
 ds = xr.Dataset({'echo_base_height': (['data points'], all_echo_base_heights)},
                 coords={'data points': np.arange(len(all_echo_base_heights))})
-ds.to_netcdf('../../data/SEA-POLv1.0_echo_base_height_vol1_50_120_-10dbz.nc')
+ds.to_netcdf('../../data/SEA-POLv1.0_echo_base_height_vol1_50_120_40dbz.nc')
