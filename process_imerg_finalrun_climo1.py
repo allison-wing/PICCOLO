@@ -34,8 +34,8 @@ North_latmax = 19.0
 North_lonmin = -26.0
 North_lonmax = -20.0
 
-lonMin, lonMax = East_lonmin, East_lonmax
-latMin, latMax = East_latmin, East_latmax
+lonMin, lonMax = East_lonmin, West_lonmax
+latMin, latMax = East_latmin, West_latmax
 
 # for zonal mean
 lon1 = -30
@@ -57,11 +57,11 @@ North_date2 = '09-10T00:00:00'
 #end_day = '30'
 #end_time = '09-'+end_day+'T00:00:00'
 
-start_mon = 'Aug.'
-start_day = '10'
-start_time = '08-'+start_day+'T00:00:00'
+start_mon = 'Sep.'
+start_day = '05'
+start_time = '09-'+start_day+'T00:00:00'
 end_mon = 'Sep.'
-end_day = '05'
+end_day = '30'
 end_time = '09-'+end_day+'T00:00:00'
 
 
@@ -91,13 +91,13 @@ for yy in years:
     
     # Select region and time period of interest
     IMERGyear = IMERG.sel(lat=slice(latMin,latMax),lon=slice(lonMin,lonMax),time=slice(str(yy)+'-'+start_time, str(yy)+'-'+end_time)).mean(dim='time')
-    zonalmean_precip_year = IMERGyear.sel(lon=slice(lon1,lon2)).mean(dim='lon')
+ #   zonalmean_precip_year = IMERGyear.sel(lon=slice(lon1,lon2)).mean(dim='lon')
     if yy == years[0]:
         IMERGCampaign = IMERGyear
-        zonalmean_precip = zonalmean_precip_year
+ #       zonalmean_precip = zonalmean_precip_year
     else:
         IMERGCampaign = xr.concat([IMERGCampaign,IMERGyear],dim='time')
-        zonalmean_precip = xr.concat([zonalmean_precip,zonalmean_precip_year],dim='time')
+#        zonalmean_precip = xr.concat([zonalmean_precip,zonalmean_precip_year],dim='time')
         
     del IMERG
     del IMERGyear
@@ -111,11 +111,11 @@ start = time.time()
 IMERGClimoMean = IMERGCampaign.mean(dim='time')
 
 #Save to netcdf file (climatological mean at each grid point over campaign time period in all years)
-IMERGClimoMean.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_campaign_climo_1998_2023_east.nc')
+IMERGClimoMean.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_campaign_climo_1998_2023_west.nc')
 
 # Save zonal mean to netcdf file (zonal mean over campaign time period in each year)
-zonalmean_precip = zonalmean_precip.assign_coords(time=years)
-zonalmean_precip.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_zonalmean_precip_1998_2023_east.nc')
+#zonalmean_precip = zonalmean_precip.assign_coords(time=years)
+#zonalmean_precip.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_zonalmean_precip_1998_2023_west.nc')
 
 end = time.time()
 print("Elapsed time for taking climo mean and writing out", end - start, "seconds")
