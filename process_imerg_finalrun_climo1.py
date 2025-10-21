@@ -34,8 +34,8 @@ North_latmax = 19.0
 North_lonmin = -26.0
 North_lonmax = -20.0
 
-lonMin, lonMax = East_lonmin, West_lonmax
-latMin, latMax = East_latmin, West_latmax
+lonMin, lonMax = West_lonmin, West_lonmax
+latMin, latMax = West_latmin, West_latmax
 
 # for zonal mean
 lon1 = -30

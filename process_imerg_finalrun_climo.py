@@ -15,8 +15,8 @@ import gc
 start = time.time()
 
 # region of interest
-#lonMin, lonMax = -62.1, -9.9
-#latMin, latMax = -2.1, 22.1
+lonMin, lonMax = -62.1, -9.9
+latMin, latMax = -2.1, 22.1
 
 #subsets
 East_latmin = 2.5
@@ -34,8 +34,8 @@ North_latmax = 19.0
 North_lonmin = -26.0
 North_lonmax = -20.0
 
-lonMin, lonMax = East_lonmin, East_lonmax
-latMin, latMax = East_latmin, East_latmax
+#lonMin, lonMax = East_lonmin, East_lonmax
+#latMin, latMax = East_latmin, East_latmax
 
 # for zonal mean
 lon1 = -30
@@ -50,20 +50,12 @@ North_date1 = '08-10T00:00:00'
 North_date2 = '09-10T00:00:00'
 
 # time period of campaign
-#start_mon = 'Aug.'
-#start_day = '10'
-#start_time = '08-'+start_day+'T00:00:00'
-#end_mon = 'Sep.'
-#end_day = '30'
-#end_time = '09-'+end_day+'T00:00:00'
-
 start_mon = 'Aug.'
 start_day = '10'
 start_time = '08-'+start_day+'T00:00:00'
 end_mon = 'Sep.'
-end_day = '05'
+end_day = '30'
 end_time = '09-'+end_day+'T00:00:00'
-
 
 # Filename base
 filebase = "/huracan/tank4/cornell/ORCESTRA/imerg/final_run_V07_TropAtl_AugSep/3B-HHR.MS.MRG.3IMERG."
@@ -111,11 +103,11 @@ start = time.time()
 IMERGClimoMean = IMERGCampaign.mean(dim='time')
 
 #Save to netcdf file (climatological mean at each grid point over campaign time period in all years)
-IMERGClimoMean.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_campaign_climo_1998_2023_east.nc')
+IMERGClimoMean.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_campaign_climo_1998_2023.nc')
 
 # Save zonal mean to netcdf file (zonal mean over campaign time period in each year)
 zonalmean_precip = zonalmean_precip.assign_coords(time=years)
-zonalmean_precip.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_zonalmean_precip_1998_2023_east.nc')
+zonalmean_precip.to_netcdf('/huracan/tank4/cornell/ORCESTRA/imerg/imerg_zonalmean_precip_1998_2023.nc')
 
 end = time.time()
 print("Elapsed time for taking climo mean and writing out", end - start, "seconds")
