@@ -13,18 +13,18 @@ import glob
 import os
 
 # read in data
-seapol = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4/PICCOLO_level4_volume_3D.nc')
+seapol = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4v1.1/PICCOLO_level4_volume_3D.nc')
 
 # set to nan outside of radius 120 km to only include data with the 3D volume
 radius_outer = 120  # km
-radius_inner = 50
+radius_inner = 50 #also exclude inward of 50 km to limit to radial range where we have "full" 3D coverage
 
 #find the maximum height where the reflectivity is above a threshold
 threshold = 10
 
 #Define time period for spatial map
 #APtime = np.datetime64('2024-08-28T20:20:00')
-APtime = np.datetime64('2024-08-17T00:00:00')  # ignore first day
+APtime = np.datetime64('2024-08-16T09:00:00')  # ignore first day
 indexAP = np.abs(pd.to_datetime(seapol.time) - APtime).argmin()
 
 # Make regular 10-minute time series
@@ -34,7 +34,7 @@ time10m = pd.to_datetime(time10m)
 
 # Loop over times since AP
 #for i in range(0, np.size(seapol.time[indexAP:-1]) + 1): #loop over all times since AP
-for i in range(0,len(time10m)):  # loop over all times since AP in the 10-minute series
+for i in range(0,len(time10m)):  # loop over all times since AP in the 10-minute series, isolating VOL1
     #print('Time:', seapol.time[indexAP + i].values)
     #map_dbz = seapol.DBZ[indexAP+i,:,:,:]
 
@@ -84,4 +84,4 @@ for i in range(0,len(time10m)):  # loop over all times since AP in the 10-minute
 # Save the echo top heights to netcdf
 ds = xr.Dataset({'echo_top_height': (['data points'], all_echo_top_heights)},
                 coords={'data points': np.arange(len(all_echo_top_heights))})
-ds.to_netcdf('../../data/SEA-POLv1.0_echo_top_height_vol1_50_120.nc')
+ds.to_netcdf('../../data/SEA-POLv1.1_echo_top_height_vol1_50_120.nc')
