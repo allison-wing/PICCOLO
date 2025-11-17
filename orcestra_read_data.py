@@ -1,14 +1,5 @@
 # Read functions for various ORCESTRA datasets.
 # 
-# Soundings - full time series 
-# 
-# DSHIP ship data
-# 
-# Radiometer
-# 
-# Sun photometer
-# 
-# 
 # James Ruppert
 # 18 Sept 2024
 
@@ -20,7 +11,6 @@ import pandas as pd
 # data_main = "/ourdisk/hpc/radclouds/auto_archive_notyet/tape_2copies/piccolo-data/data/"
 data_main = "./data/"
 orcestra_ipns_root = "ipns://latest.orcestra-campaign.org"
-
 
 #############################################
 ### General read function for IPNS
@@ -141,11 +131,12 @@ def fix_time_3hrly(times_in, files_in):
 # def read_bowtie_soundings(search_string = 'ascen'):
 def read_soundings(platform='RV_Meteor', ascent=0):
 
-    path = 'Radiosondes/RAPSODI_RS_ORCESTRA_level2.zarr'
+    path = 'Radiosondes/Level_2/RAPSODI_RS_ORCESTRA_level2.zarr'
     sndfile = xr.open_dataset(f"{orcestra_ipns_root}/products/{path}", engine="zarr")
     # Print unique platforms
     # print(np.unique(platform))
-    hght = np.squeeze(sndfile['alt'].data) # m
+    # hght = np.squeeze(sndfile['alt'].data) # m
+    hght = np.squeeze(sndfile['height'].data) # m
     platform = sndfile.variables['platform'].data
     ascent_flag = sndfile.variables['ascent_flag'].data # 0, 1 --> ascent, descent
     isondes = (platform == 'RV_Meteor') & (ascent_flag == ascent)
@@ -200,7 +191,7 @@ def read_soundings(platform='RV_Meteor', ascent=0):
 def read_halo_soundings_lev3():
     path = "HALO/dropsondes/Level_3/PERCUSION_Level_3.zarr"
     ds = xr.open_dataset(f"{orcestra_ipns_root}/products/{path}", engine="zarr")
-    time = ds["sonde_time"].data # m
+    time = ds["launch_time"].data
     qual_flag = ds["sonde_qc"].data # 0, 1, 2 --> good, bad, ugly
     # snd_halo["qual_flag"] = qual_flag
     # Put variables into dictionary
@@ -210,8 +201,8 @@ def read_halo_soundings_lev3():
     # snd_halo["iwv"]  = np.ma.masked_invalid(ds["iwv"].data) # kg/m^2
     # snd_halo["lat"]  = np.ma.masked_invalid(ds["aircraft_latitude"].data) # deg
     # snd_halo["lon"]  = np.ma.masked_invalid(ds["aircraft_longitude"].data) # deg
-    snd_halo["lat"]  = np.ma.masked_invalid(ds["aircraft_latitude"].data) # deg
-    snd_halo["lon"]  = np.ma.masked_invalid(ds["aircraft_longitude"].data) # deg
+    snd_halo["lat"]  = np.ma.masked_invalid(ds["launch_lat"].data) # deg
+    snd_halo["lon"]  = np.ma.masked_invalid(ds["launch_lon"].data) # deg
     snd_halo["p"]    = np.ma.masked_invalid(ds["p"].data) # Pa
     sh               = np.ma.masked_invalid(ds["q"].data) # specific humidity, kg/kg
     # Convert SH to MR for consistency with METEOR soundings
@@ -333,33 +324,36 @@ def read_halo_soundings_lev4():
 ### Radiometer data
 #############################################
 
-def read_bowtie_radiometer():
+# Now downloading this data from IPFS
 
-    # main = "/Volumes/wiss/M203/Radiometer_MWR-HatPro-Uni-Leipzig/Data/"
-    main = data_main+'radiometer/'
+# def read_bowtie_radiometer():
 
-    process = subprocess.Popen(['ls --color=none '+main+'*/*singl*nc'],shell=True,
-        stdout=subprocess.PIPE,universal_newlines=True)
-    rdm_files = process.stdout.readlines()
-    nfiles=len(rdm_files)
-    for ifile in range(nfiles):
-        rdm_files[ifile] = rdm_files[ifile].strip()
-        rdmfile = xr.open_dataset(rdm_files[ifile])
-        rdm_time = rdmfile['time'].data
-        cwv = rdmfile['iwv'].data
-        flag = rdmfile['iwv_quality_flag'].data
-        rdmfile.close()
-        rdm_time = np.array(rdm_time, dtype='datetime64[s]')
-        cwv = np.array(cwv)
-        cwv[np.where(flag != 0)] = np.nan
-        if ifile == 0:
-            times=rdm_time
-            cwv_rdm=cwv
-        else:
-            times=np.concatenate((times,rdm_time))
-            cwv_rdm=np.concatenate((cwv_rdm,cwv))
+#     # main = "/Volumes/wiss/M203/Radiometer_MWR-HatPro-Uni-Leipzig/Data/"
+#     main = data_main+'radiometer/'
 
-    return cwv_rdm, times
+#     # process = subprocess.Popen(['ls --color=none '+main+'*/*singl*nc'],shell=True,
+#     process = subprocess.Popen(['ls --color=none '+main+'*singl*nc'],shell=True,
+#         stdout=subprocess.PIPE,universal_newlines=True)
+#     rdm_files = process.stdout.readlines()
+#     nfiles=len(rdm_files)
+#     for ifile in range(nfiles):
+#         rdm_files[ifile] = rdm_files[ifile].strip()
+#         rdmfile = xr.open_dataset(rdm_files[ifile])
+#         rdm_time = rdmfile['time'].data
+#         cwv = rdmfile['iwv'].data
+#         flag = rdmfile['iwv_quality_flag'].data
+#         rdmfile.close()
+#         rdm_time = np.array(rdm_time, dtype='datetime64[s]')
+#         cwv = np.array(cwv)
+#         cwv[np.where(flag != 0)] = np.nan
+#         if ifile == 0:
+#             times=rdm_time
+#             cwv_rdm=cwv
+#         else:
+#             times=np.concatenate((times,rdm_time))
+#             cwv_rdm=np.concatenate((cwv_rdm,cwv))
+
+#     return cwv_rdm, times
 
 
 
@@ -367,52 +361,54 @@ def read_bowtie_radiometer():
 ### Sun photometer data
 #############################################
 
+# Same data is now on IPFS, so take from there
+
 # Downloading this data from https://aeronet.gsfc.nasa.gov/new_web/cruises_v3/Meteor_24_0.html
 
-def read_bowtie_sunphotometer():
+# def read_bowtie_sunphotometer():
 
-    # main_photometer = "/Volumes/wiss/M203/microtops/downloaded/Meteor_24_0/AOD/Meteor_24_0_all_points.lev15"
-    # main = data_main+"microtops/Meteor_24_0_old/AOD/Meteor_24_0_all_points.lev15"
-    main = data_main+"microtops/Meteor_24_0/AOD/Meteor_24_0_all_points.lev20"
+#     # main_photometer = "/Volumes/wiss/M203/microtops/downloaded/Meteor_24_0/AOD/Meteor_24_0_all_points.lev15"
+#     # main = data_main+"microtops/Meteor_24_0_old/AOD/Meteor_24_0_all_points.lev15"
+#     main = data_main+"microtops/Meteor_24_0/AOD/Meteor_24_0_all_points.lev20"
 
-    photom = pd.read_csv(main, sep=',', on_bad_lines='skip', skiprows=4)
+#     photom = pd.read_csv(main, sep=',', on_bad_lines='skip', skiprows=4)
 
-    # Get Datetimes from time stamps
-    df_datetime = pd.DataFrame({'year': photom['Date(dd:mm:yyyy)'].str[-4:],
-                                'month': photom['Date(dd:mm:yyyy)'].str[3:5],
-                                'day': photom['Date(dd:mm:yyyy)'].str[0:2],
-                                'hour': photom['Time(hh:mm:ss)'].str[0:2],
-                                'minute': photom['Time(hh:mm:ss)'].str[3:5],
-                                'second': photom['Time(hh:mm:ss)'].str[6:8]})
+#     # Get Datetimes from time stamps
+#     df_datetime = pd.DataFrame({'year': photom['Date(dd:mm:yyyy)'].str[-4:],
+#                                 'month': photom['Date(dd:mm:yyyy)'].str[3:5],
+#                                 'day': photom['Date(dd:mm:yyyy)'].str[0:2],
+#                                 'hour': photom['Time(hh:mm:ss)'].str[0:2],
+#                                 'minute': photom['Time(hh:mm:ss)'].str[3:5],
+#                                 'second': photom['Time(hh:mm:ss)'].str[6:8]})
 
-    photom['Date(dd:mm:yyyy)'] = pd.to_datetime(df_datetime)
+#     photom['Date(dd:mm:yyyy)'] = pd.to_datetime(df_datetime)
 
-    # Sort dataframe
-    photom = photom.sort_values('Date(dd:mm:yyyy)')
+#     # Sort dataframe
+#     photom = photom.sort_values('Date(dd:mm:yyyy)')
 
-    # Convert IWV column to float
-    photom['Water Vapor(cm)'] = pd.to_numeric(photom['Water Vapor(cm)'], errors='coerce')*10 # cm --> mm
+#     # Convert IWV column to float
+#     photom['Water Vapor(cm)'] = pd.to_numeric(photom['Water Vapor(cm)'], errors='coerce')*10 # cm --> mm
 
-    # photom = pd.read_csv(main_photometer, sep=',', on_bad_lines='skip', skiprows=2)
+#     # photom = pd.read_csv(main_photometer, sep=',', on_bad_lines='skip', skiprows=2)
 
-    # # Get Datetimes from time stamps
-    # df_datetime = pd.DataFrame({'year': photom['DATE'].str[-4:],
-    #                             'month': photom['DATE'].str[0:2],
-    #                             'day': photom['DATE'].str[3:5],
-    #                             'hour': photom['TIME'].str[0:2],
-    #                             'minute': photom['TIME'].str[3:5],
-    #                             'second': photom['TIME'].str[6:8]})
-    # photom['DATE'] = pd.to_datetime(df_datetime)
-    # # for icol in range(32):
-    # #     print(photom.iloc[0:3, icol])
+#     # # Get Datetimes from time stamps
+#     # df_datetime = pd.DataFrame({'year': photom['DATE'].str[-4:],
+#     #                             'month': photom['DATE'].str[0:2],
+#     #                             'day': photom['DATE'].str[3:5],
+#     #                             'hour': photom['TIME'].str[0:2],
+#     #                             'minute': photom['TIME'].str[3:5],
+#     #                             'second': photom['TIME'].str[6:8]})
+#     # photom['DATE'] = pd.to_datetime(df_datetime)
+#     # # for icol in range(32):
+#     # #     print(photom.iloc[0:3, icol])
 
-    # # Sort dataframe
-    # photom = photom.sort_values('DATE')
+#     # # Sort dataframe
+#     # photom = photom.sort_values('DATE')
 
-    # # Convert IWV column to float
-    # photom['WATER'] = pd.to_numeric(photom['WATER'], errors='coerce')*10 # cm --> mm
+#     # # Convert IWV column to float
+#     # photom['WATER'] = pd.to_numeric(photom['WATER'], errors='coerce')*10 # cm --> mm
 
-    return photom
+#     return photom
 
 
 
