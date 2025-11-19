@@ -393,8 +393,6 @@ for yy in years:
     era5_10m_yy.close()
     u600_yy.close()
     v600_yy.close()
-    u850_yy.close()
-    v850_yy.close()
     iyear=iyear+1
 
 # Add 2024
@@ -520,8 +518,6 @@ for yy in years:
 
     era5_10m.close()
     era5_10m_yy.close()
-    u600_yy.close()
-    v600_yy.close()
     u850_yy.close()
     v850_yy.close()
     iyear=iyear+1
