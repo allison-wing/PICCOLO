@@ -12,7 +12,7 @@ import glob
 import os
 
 # read in data
-seapol = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4v1.2.old/PICCOLO_level4_volume_3D.nc')
+seapol = xr.open_dataset('/huracan/tank4/cornell/ORCESTRA/sea-pol/qc_data/level4v1.2/PICCOLO_level4_volume_3D.nc')
 
 # set to nan outside of radius 120 km to only include data with the 3D volume
 radius_outer = 120  # km
@@ -25,9 +25,9 @@ threshold = 10
 elevated_threshold = 2000  # in meters
 
 # Make regular 10-minute time series
-#start_time = np.datetime64('2024-08-16T08:10:00')
-start_time = np.datetime64('2024-09-13T00:00:00') #East/west division
-end_time = np.datetime64('2024-09-23T16:50:00')
+start_time = np.datetime64('2024-08-16T08:10:00')
+end_time = np.datetime64('2024-09-13T00:00:00') #East/west division
+#end_time = np.datetime64('2024-09-23T16:50:00')
 time10m = pd.date_range(start_time, end_time, freq='10 min')
 time10m = pd.to_datetime(time10m)
 
@@ -123,4 +123,4 @@ ds = xr.Dataset(data_vars={'echo_base_height': (['data points'], all_echo_base_h
                 'elevated_echo_fraction4': (['time'], all_elevated_fractions4)},
                 coords={'data points': np.arange(len(all_echo_base_heights)),
                         'time': time10m})
-ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz_West.nc')
+ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz_2km_East.nc')
