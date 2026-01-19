@@ -22,9 +22,9 @@ radius_inner = 50
 threshold = 10
 
 # Make regular 10-minute time series
-start_time = np.datetime64('2024-08-16T08:10:00')
-end_time = np.datetime64('2024-09-13T00:00:00') #East/west division
-#end_time = np.datetime64('2024-09-23T16:50:00')
+start_time = np.datetime64('2024-08-16T08:00:00')
+#end_time = np.datetime64('2024-09-13T00:00:00') #East/west division
+end_time = np.datetime64('2024-09-23T16:50:00')
 time10m = pd.date_range(start_time, end_time, freq='10 min')
 time10m = pd.to_datetime(time10m)
 
@@ -85,13 +85,13 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         echo_top_height_flat = echo_top_height[valid_top].flatten()
         
         # Calculate fraction of echoes in this scene that are elevated
-        elevated_fraction1 = len(np.where(echo_base_height.flatten()>1000)[0]) / len(echo_base_height.flatten()) if len(echo_base_height.flatten()) > 0 else np.nan
-        elevated_fraction2 = len(np.where(echo_base_height.flatten()>2000)[0]) / len(echo_base_height.flatten()) if len(echo_base_height.flatten()) > 0 else np.nan
-        elevated_fraction3 = len(np.where(echo_base_height.flatten()>3000)[0]) / len(echo_base_height.flatten()) if len(echo_base_height.flatten()) > 0 else np.nan
-        elevated_fraction4 = len(np.where(echo_base_height.flatten()>4000)[0]) / len(echo_base_height.flatten()) if len(echo_base_height.flatten()) > 0 else np.nan
+        elevated_fraction1 = len(np.where(echo_base_height_flat>1000)[0]) / len(echo_base_height_flat) if len(echo_base_height_flat) > 0 else np.nan
+        elevated_fraction2 = len(np.where(echo_base_height_flat>2000)[0]) / len(echo_base_height_flat) if len(echo_base_height_flat) > 0 else np.nan
+        elevated_fraction3 = len(np.where(echo_base_height_flat>3000)[0]) / len(echo_base_height_flat) if len(echo_base_height_flat) > 0 else np.nan
+        elevated_fraction4 = len(np.where(echo_base_height_flat>4000)[0]) / len(echo_base_height_flat) if len(echo_base_height_flat) > 0 else np.nan
 
         # Concatenate the echo base heights into a single array
-        if i == 0:
+        if i == 0 or 'all_echo_base_heights' not in locals():
             all_echo_base_heights = echo_base_height_flat
             all_echo_top_heights = echo_top_height_flat
         else:
@@ -120,4 +120,4 @@ ds = xr.Dataset(data_vars={'echo_base_height': (['data points'], all_echo_base_h
                 'elevated_echo_fraction4': (['time'], all_elevated_fractions4)},
                 coords={'data points': np.arange(len(all_echo_base_heights)),
                         'time': time10m})
-ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz_East.nc')
+ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz.nc')
