@@ -23,7 +23,7 @@ threshold = 10
 
 # Make regular 10-minute time series
 start_time = np.datetime64('2024-08-16T08:00:00')
-#end_time = np.datetime64('2024-09-13T00:00:00') #East/west division
+#start_time = np.datetime64('2024-09-13T00:00:00') #East/west division
 end_time = np.datetime64('2024-09-23T16:50:00')
 time10m = pd.date_range(start_time, end_time, freq='10 min')
 time10m = pd.to_datetime(time10m)
