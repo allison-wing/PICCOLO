@@ -16,6 +16,9 @@ end_time = np.datetime64('2024-09-23T16:50:00')
 time10m = pd.date_range(start_time, end_time, freq='10 min')
 time10m = pd.to_datetime(time10m)
 
+# set to nan outside of radius 120 km to only include data with the 3D volume
+radius_outer = 120  # km
+
 # Define HID bins for histogram
 hid_bins = np.arange(0.5,11.5,1)
 
@@ -42,6 +45,10 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         vol_HID = seapol.HID_CSU.sel(time=time10m[i]) #VOL1 only
         vol_HID = vol_HID.where(vol_HID !=-9999, np.nan) #set clear air echoes to NaN (no data possible already NaN)
 
+        # set to nan outside of radius_outer to only include data with the 3D volume
+        distances = np.sqrt((vol_HID.latitude - vol_HID.latitude[120, 120])**2 + (vol_HID.longitude - vol_HID.longitude[120, 120])**2) * 111.32  # Approximate conversion from degrees to km
+        vol_HID = vol_HID.where(distances<=radius_outer,np.nan)  # Set values outside the radius to NaN
+        
         # Calculate counts and density for this scene
         hid_hist,bin_edges = np.histogram(vol_HID.values.flatten(),bins=hid_bins,density=False)
         hid_density,bin_edges = np.histogram(vol_HID.values.flatten(),bins=hid_bins, density=True)
