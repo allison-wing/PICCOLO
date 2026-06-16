@@ -19,7 +19,7 @@ radius_outer = 120  # km
 radius_inner = 50
 
 # set reflectivity threshold for valid echoes
-threshold = 10
+threshold = -10
 
 # Make regular 10-minute time series
 start_time = np.datetime64('2024-08-16T08:00:00')
@@ -120,4 +120,4 @@ ds = xr.Dataset(data_vars={'echo_base_height': (['data points'], all_echo_base_h
                 'elevated_echo_fraction4': (['time'], all_elevated_fractions4)},
                 coords={'data points': np.arange(len(all_echo_base_heights)),
                         'time': time10m})
-ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz.nc')
+ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_-10dbz.nc')
