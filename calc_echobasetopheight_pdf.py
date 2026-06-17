@@ -19,7 +19,7 @@ radius_outer = 120  # km
 radius_inner = 50
 
 # set reflectivity threshold for valid echoes
-threshold = -10
+threshold = 10
 
 # Make regular 10-minute time series
 start_time = np.datetime64('2024-08-16T08:00:00')
@@ -73,11 +73,14 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         has_valid = valid_data.any(axis=0)
         echo_base_height[has_valid] = -5
         echo_top_height[has_valid] = -5
-
+        
         # Set echo base height where threshold is met
         valid_base = min_indices != -1
-        valid_top = max_indices != -1
         echo_base_height[valid_base] = map_dbz.Z.values[min_indices[valid_base].astype(int)]
+
+        # Set echo top height where threshold is met, 
+        # checking there are possible echoes above that height (dBZ < threshold or -9999)
+        valid_top = max_indices != -1
         echo_top_height[valid_top] = map_dbz.Z.values[max_indices[valid_top].astype(int)]
         
         # Reshape into a 1D array
@@ -120,4 +123,4 @@ ds = xr.Dataset(data_vars={'echo_base_height': (['data points'], all_echo_base_h
                 'elevated_echo_fraction4': (['time'], all_elevated_fractions4)},
                 coords={'data points': np.arange(len(all_echo_base_heights)),
                         'time': time10m})
-ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_-10dbz.nc')
+ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz.nc')
