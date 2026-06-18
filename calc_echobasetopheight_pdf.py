@@ -74,10 +74,6 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         echo_base_height[has_valid] = -5
         echo_top_height[has_valid] = -5
         
-        # Set echo base height where threshold is met
-        valid_base = min_indices != -1
-        echo_base_height[valid_base] = map_dbz.Z.values[min_indices[valid_base].astype(int)]
-
         # Set echo top height where threshold is met, checking there are possible echoes above that height (dBZ < threshold or -9999)
         valid_top = max_indices != -1 #this is a mask for where the threshold is met
 
@@ -92,17 +88,22 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         zz = above_max_indices[yy, xx].astype(int)
         dBZabove[yy, xx] = map_dbz.values[zz, yy, xx]
 
-        #if the dbz value above the max index is not valid (nan), set the max index to -1
+        #if the dbz value above the max index is not valid (nan), set the max index and min index to -1
+        #basically also limiting echo base height to where there is a confident echo top height
         confident_max_indices = np.copy(max_indices)
         confident_max_indices = np.where(~np.isnan(dBZabove), confident_max_indices, -1)
+        confident_min_indices = np.copy(min_indices)
+        confident_min_indices = np.where(~np.isnan(dBZabove), confident_min_indices, -1)
         confident_valid_top = confident_max_indices != -1 #this is a mask for where the threshold is met and there is valid data above the max index
+        confident_valid_base = confident_min_indices != -1 
 
         #grab the values of the height at the indices of the confident valid tops
         echo_top_height[confident_valid_top] = map_dbz.Z.values[confident_max_indices[confident_valid_top].astype(int)]
+        echo_base_height[confident_valid_base] = map_dbz.Z.values[confident_min_indices[confident_valid_base].astype(int)]
         #echo_top_height[valid_top] = map_dbz.Z.values[max_indices[valid_top].astype(int)] #old way with no check if at top of scan
 
         # Reshape into a 1D array
-        echo_base_height_flat = echo_base_height[valid_base].flatten()
+        echo_base_height_flat = echo_base_height[confident_valid_base].flatten()
         echo_top_height_flat = echo_top_height[confident_valid_top].flatten()
         
         # Calculate fraction of echoes in this scene that are elevated
