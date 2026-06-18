@@ -53,7 +53,7 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         map_dbz = map_dbz.where(distances<=radius_outer,np.nan)  # Set values outside the radius to NaN
 
         # also mask within radius_inner, to limit to radial range where we have "full" 3D coverage
-        map_dbz = map_dbz.where(distances >= radius_inner, np.nan)
+        #map_dbz = map_dbz.where(distances >= radius_inner, np.nan) ##SKIP this now because we are checking for confident tops
 
         # mask for valid (non-NaN) data
         valid_data = ~np.isnan(map_dbz.values)
@@ -78,14 +78,32 @@ for i in range(0,len(time10m)):  # loop over all times in the 10-minute series (
         valid_base = min_indices != -1
         echo_base_height[valid_base] = map_dbz.Z.values[min_indices[valid_base].astype(int)]
 
-        # Set echo top height where threshold is met, 
-        # checking there are possible echoes above that height (dBZ < threshold or -9999)
-        valid_top = max_indices != -1
-        echo_top_height[valid_top] = map_dbz.Z.values[max_indices[valid_top].astype(int)]
-        
+        # Set echo top height where threshold is met, checking there are possible echoes above that height (dBZ < threshold or -9999)
+        valid_top = max_indices != -1 #this is a mask for where the threshold is met
+
+        #also check that the maximum index is not at the top of the profile (nan above)
+        above_max_indices = np.copy(max_indices)
+        above_max_indices[valid_top] = above_max_indices[valid_top] + 1 # this is the index just above the maximum index where the threshold is met
+        dBZabove = np.full(map_dbz.shape[1:], np.nan)
+
+        #grab dbz value at the index above the maximum index where the threshold is met (if valid)
+        valid_above = valid_top & (above_max_indices >= 0) & (above_max_indices < map_dbz.shape[0])
+        yy, xx = np.where(valid_above)
+        zz = above_max_indices[yy, xx].astype(int)
+        dBZabove[yy, xx] = map_dbz.values[zz, yy, xx]
+
+        #if the dbz value above the max index is not valid (nan), set the max index to -1
+        confident_max_indices = np.copy(max_indices)
+        confident_max_indices = np.where(~np.isnan(dBZabove), confident_max_indices, -1)
+        confident_valid_top = confident_max_indices != -1 #this is a mask for where the threshold is met and there is valid data above the max index
+
+        #grab the values of the height at the indices of the confident valid tops
+        echo_top_height[confident_valid_top] = map_dbz.Z.values[confident_max_indices[confident_valid_top].astype(int)]
+        #echo_top_height[valid_top] = map_dbz.Z.values[max_indices[valid_top].astype(int)] #old way with no check if at top of scan
+
         # Reshape into a 1D array
         echo_base_height_flat = echo_base_height[valid_base].flatten()
-        echo_top_height_flat = echo_top_height[valid_top].flatten()
+        echo_top_height_flat = echo_top_height[confident_valid_top].flatten()
         
         # Calculate fraction of echoes in this scene that are elevated
         elevated_fraction1 = len(np.where(echo_base_height_flat>1000)[0]) / len(echo_base_height_flat) if len(echo_base_height_flat) > 0 else np.nan
@@ -123,4 +141,4 @@ ds = xr.Dataset(data_vars={'echo_base_height': (['data points'], all_echo_base_h
                 'elevated_echo_fraction4': (['time'], all_elevated_fractions4)},
                 coords={'data points': np.arange(len(all_echo_base_heights)),
                         'time': time10m})
-ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_50_120_10dbz.nc')
+ds.to_netcdf('../../data/SEA-POLv1.2_echo_base_top_height_vol1_10dbz_confident.nc')
